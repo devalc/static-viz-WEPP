@@ -10,7 +10,7 @@
 library(shiny)
 library(tidyverse)
 library(shinythemes)
-
+library(gganimate)
 
 # Data Preparation Steps
 
@@ -22,7 +22,8 @@ unique_scenario <- as.character(unique(data$Scenario))
 ui <- fluidPage(
     
     # # App title ----
-    titlePanel(p("viz-WEPP", style = "color:#3474A7")),
+    # titlePanel(p("viz-WEPP", style = "color:#3474A7")),
+    titlePanel("viz-WEPP"),
     
     ## set the theme
     
@@ -68,7 +69,7 @@ ui <- fluidPage(
             # Output: Histogram ----
             plotOutput(outputId = "Plot_vs_CumArea"),
             plotOutput(outputId = "Plot_vs_CumLen")
-            # plotOutput(outputId = "distPlot2")
+            # imageOutput(outputId = "distPlot2")
         )
     )
 )
@@ -495,8 +496,10 @@ server <- function(input, output){
         
         p1 <- p1 +  theme_bw()+
             theme(axis.title = element_text(size=14,color="Black",face="bold"),
-                  axis.text = element_text(size=14,color="BLACK",face="bold"))+
-            labs(x="Percent Area",y=input$var1,title="",colour="Channel")
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"))+
+            labs(x="Percent Area",y=input$var1,title="",colour="Scenario") 
         
         p1
         
@@ -504,7 +507,7 @@ server <- function(input, output){
     
     
     output$Plot_vs_CumLen <- renderPlot({
-        
+
         p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercLen ))
         if(input$var1 == "Runoff..mm."){
             p1 <- p1 + geom_line(aes(y=cumRunoff.mm, color= Scenario),size=1)
@@ -554,16 +557,89 @@ server <- function(input, output){
                                                                     if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
                                                                         p1 <- p1 + geom_line(aes(y=cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha., color= Scenario),size=1)
                                                                     }
-        
-        
+
+
         p1 <- p1 +  theme_bw()+
             theme(axis.title = element_text(size=14,color="BLACK",face="bold"),
-                  axis.text = element_text(size=14,color="BLACK",face="bold"))+
-            labs(x="Percent Channel Length",y=input$var1,title="",colour="Channel")
-        
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"))+
+            labs(x="Percent Channel Length",y=input$var1,title="",colour="Scenario")
+
         p1
-        
+
     })
+    
+    
+    # output$distPlot2 <- renderImage({
+    #     
+    #     outfile <- tempfile(fileext='.gif')
+    #     
+    #     p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercLen )) +  theme_bw()+
+    #         theme(axis.title = element_text(size=14,color="BLACK",face="bold"),
+    #               axis.text = element_text(size=14,color="BLACK",face="bold"),
+    #               legend.title = element_text(size=14,color="BLACK",face="bold"),
+    #               legend.text = element_text(size=14,color="BLACK"))+
+    #         labs(x="Percent Channel Length",y=input$var1,title="",colour="Scenario")
+    #     if(input$var1 == "Runoff..mm."){
+    #         p1 <- p1 + geom_line(aes(y=cumRunoff.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)  
+    #     }else
+    #         if(input$var1 == "Lateral.Flow..mm."){
+    #             p1 <- p1 + geom_line(aes(y=cumLateralflow.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #         }else
+    #             if(input$var1 == "Baseflow..mm."){
+    #                 p1 <- p1 + geom_line(aes(y=cumBaseflow.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #             }else
+    #                 if(input$var1 == "Soil.Loss..kg.ha."){
+    #                     p1 <- p1 + geom_line(aes(y=cumSoilLoss.kg.ha, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                 }else
+    #                     if(input$var1 == "Sediment.Deposition..kg.ha."){
+    #                         p1 <- p1 + geom_line(aes(y=cumSedDep.kg.ha, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                     }else
+    #                         if(input$var1 == "Sediment.Yield..kg.ha."){
+    #                             p1 <- p1 + geom_line(aes(y=cumSedYield.kg.ha, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                         }else
+    #                             if(input$var1 == "Solub..React..P..kg.ha.3."){
+    #                                 p1 <- p1 + geom_line(aes(y=cumSRP.kg.ha.3, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                             }else
+    #                                 if(input$var1 == "Particulate.P..kg.ha.3."){
+    #                                     p1 <- p1 + geom_line(aes(y=cumParticulateP.kg.ha.3, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                 }else
+    #                                     if(input$var1 == "Total.P..kg.ha.3."){
+    #                                         p1 <- p1 + geom_line(aes(y=cumTotalP.kg.ha.3, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                     }else
+    #                                         if(input$var1 == "Particle.Class.1.Fraction"){
+    #                                             p1 <- p1 + geom_line(aes(y=cumParticle.Class.1.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                         }else
+    #                                             if(input$var1 == "Particle.Class.2.Fraction"){
+    #                                                 p1 <- p1 + geom_line(aes(y=cumParticle.Class.2.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                             }else
+    #                                                 if(input$var1 == "Particle.Class.3.Fraction"){
+    #                                                     p1 <- p1 + geom_line(aes(y=cumParticle.Class.3.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                                 }else
+    #                                                     if(input$var1 == "Particle.Class.4.Fraction"){
+    #                                                         p1 <- p1 + geom_line(aes(y=cumParticle.Class.4.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                                     }else
+    #                                                         if(input$var1 == "Particle.Class.5.Fraction"){
+    #                                                             p1 <- p1 + geom_line(aes(y=cumParticle.Class.5.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                                         }else
+    #                                                             if(input$var1 == "Particle.Fraction.Under.0.016.mm"){
+    #                                                                 p1 <- p1 + geom_line(aes(y=cumParticle.Fraction.Under.0.016.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                                             }else
+    #                                                                 if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
+    #                                                                     p1 <- p1 + geom_line(aes(y=cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha., color= Scenario),size=1)+ transition_reveal(cumPercLen)
+    #                                                                 }
+    #     anim_save("outfile.gif", animate(p1)) # New
+    # 
+    #     # Return a list containing the filename
+    #     list(src = "outfile.gif",
+    #          contentType = 'image/gif',
+    #          width = 1000,
+    #          height = 1000
+    #          # alt = "This is alternate text"
+    #     )}, deleteFile = TRUE)
+    
+    
     
     
 }
