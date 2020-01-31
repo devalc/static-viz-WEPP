@@ -1,0 +1,13 @@
+name: test-viz-WEPP
+title: test-viz-WEPP
+username:
+account: cdeval
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1744121
+bundleId: 2767477
+url: https://cdeval.shinyapps.io/test-viz-WEPP/
+when: 1580507584.4323
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .gitattributes|README.md
