@@ -59,7 +59,8 @@ ui <- fluidPage(
                                                                            "Particle Class 5 Fraction" = "Particle.Class.5.Fraction",
                                                                            "Particle Fraction Under 0.016 mm" = "Particle.Fraction.Under.0.016.mm",
                                                                            "Sediment Yield of Particles Under 0.016 mm" = "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."),
-                        selected = character(0), multiple = F)
+                        selected = character(0), multiple = F),
+            
             
         ),
         
