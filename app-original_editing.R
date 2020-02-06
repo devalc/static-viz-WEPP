@@ -36,10 +36,10 @@ ui <- fluidPage(
             
             # Input: Slider for the number of bins ----
             selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
-                        selected = "Blue",multiple = F),
+                        selected = unique_watsheds[1],multiple = F),
             
-            # selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
-            #             selected = "Blue",multiple = F),
+            selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                        selected = unique_scenario[1],multiple = T),
             
             # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
             
@@ -59,7 +59,7 @@ ui <- fluidPage(
                                                                            "Particle Class 5 Fraction" = "Particle.Class.5.Fraction",
                                                                            "Particle Fraction Under 0.016 mm" = "Particle.Fraction.Under.0.016.mm",
                                                                            "Sediment Yield of Particles Under 0.016 mm" = "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."),
-                        selected = character(0), multiple = F),
+                        selected = character(0), multiple = F)
             
             
         ),
@@ -67,10 +67,54 @@ ui <- fluidPage(
         # Main panel for displaying outputs ----
         mainPanel(
             
-            # Output: Histogram ----
-            plotOutput(outputId = "Plot_vs_CumArea"),
-            plotOutput(outputId = "Plot_vs_CumLen")
-            # imageOutput(outputId = "distPlot2")
+            tabsetPanel(
+                tabPanel("Hillslope",
+                         fluidRow(
+                                  column(6, plotOutput("Plot_vs_CumArea")),
+                                  column(6, plotOutput("Plot_vs_CumArea_abs"))
+                         ),
+                         fluidRow(
+                                  column(6, plotOutput("Plot_vs_CumLen")),
+                                  column(6, plotOutput("Plot_vs_CumLen_abs"))
+                                  )
+                ),
+            
+            
+                tabPanel("Channel",
+                         fluidRow(
+                             column(6, plotOutput("ab")),
+                             column(6, plotOutput("bc"))
+                         ),
+                         fluidRow(
+                             column(6, plotOutput("cd")),
+                             column(6, plotOutput("cds"))
+                         )
+                ),
+            
+            
+                tabPanel("Watershed",
+                         fluidRow(
+                             column(6, plotOutput("sdfqw")),
+                             column(6, plotOutput("asd"))
+                         ),
+                         fluidRow(
+                             column(6, plotOutput("asdad")),
+                             column(6, plotOutput("asdasd"))
+                         )
+                )
+                
+                # tabPanel("WatBal",
+                #          fluidRow(
+                #              column(6, plotOutput("sdsadfqw")),
+                #              column(6, plotOutput("asdasd"))
+                #          ),
+                #          fluidRow(
+                #              column(6, plotOutput("assdadad")),
+                #              column(6, plotOutput("asdgfdasd"))
+                #          ))
+                )
+                         
+
         )
     )
 )
@@ -499,8 +543,74 @@ server <- function(input, output){
             theme(axis.title = element_text(size=14,color="Black",face="bold"),
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
+            labs(x="Percent Area",y=paste("Percent of total", input$var1, sep = " "), title="",colour="Scenario") 
+        
+        p1
+        
+    })
+    
+    
+    output$Plot_vs_CumArea_abs <- renderPlot({
+        
+        p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
+        if(input$var1 == "Runoff..mm."){
+            p1 <- p1 + geom_line(aes(y=cumsum(Runoff..mm.) , color= Scenario),size=1)
+        }else
+            if(input$var1 == "Lateral.Flow..mm."){
+                p1 <- p1 + geom_line(aes(y=cumsum(Lateral.Flow..mm.), color= Scenario),size=1)
+            }else
+                if(input$var1 == "Baseflow..mm."){
+                    p1 <- p1 + geom_line(aes(y=cumsum(Baseflow..mm.), color= Scenario),size=1)
+                }else
+                    if(input$var1 == "Soil.Loss..kg.ha."){
+                        p1 <- p1 + geom_line(aes(y=cumsum(Soil.Loss..kg.ha.), color= Scenario),size=1)
+                    }else
+                        if(input$var1 == "Sediment.Deposition..kg.ha."){
+                            p1 <- p1 + geom_line(aes(y=cumsum(Sediment.Deposition..kg.ha.), color= Scenario),size=1)
+                        }else
+                            if(input$var1 == "Sediment.Yield..kg.ha."){
+                                p1 <- p1 + geom_line(aes(y=cumsum(Sediment.Yield..kg.ha.), color= Scenario),size=1)
+                            }else
+                                if(input$var1 == "Solub..React..P..kg.ha.3."){
+                                    p1 <- p1 + geom_line(aes(y=cumsum(Solub..React..P..kg.ha.3.), color= Scenario),size=1)
+                                }else
+                                    if(input$var1 == "Particulate.P..kg.ha.3."){
+                                        p1 <- p1 + geom_line(aes(y=cumsum(Particulate.P..kg.ha.3.), color= Scenario),size=1)
+                                    }else
+                                        if(input$var1 == "Total.P..kg.ha.3."){
+                                            p1 <- p1 + geom_line(aes(y=cumsum(Total.P..kg.ha.3.), color= Scenario),size=1)
+                                        }else
+                                            if(input$var1 == "Particle.Class.1.Fraction"){
+                                                p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.1.Fraction), color= Scenario),size=1)
+                                            }else
+                                                if(input$var1 == "Particle.Class.2.Fraction"){
+                                                    p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.2.Fraction), color= Scenario),size=1)
+                                                }else
+                                                    if(input$var1 == "Particle.Class.3.Fraction"){
+                                                        p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.3.Fraction), color= Scenario),size=1)
+                                                    }else
+                                                        if(input$var1 == "Particle.Class.4.Fraction"){
+                                                            p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.4.Fraction), color= Scenario),size=1)
+                                                        }else
+                                                            if(input$var1 == "Particle.Class.5.Fraction"){
+                                                                p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.5.Fraction), color= Scenario),size=1)
+                                                            }else
+                                                                if(input$var1 == "Particle.Fraction.Under.0.016.mm"){
+                                                                    p1 <- p1 + geom_line(aes(y=cumsum(Particle.Fraction.Under.0.016.mm), color= Scenario),size=1)
+                                                                }else
+                                                                    if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
+                                                                        p1 <- p1 + geom_line(aes(y=cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.) , color= Scenario),size=1)
+                                                                    }
+        
+        
+        p1 <- p1 +  theme_bw()+
+            theme(axis.title = element_text(size=14,color="Black",face="bold"),
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"))+
-            labs(x="Percent Area",y=input$var1,title="",colour="Scenario") 
+            labs(x="Percent of total hillslope area",y=input$var1,title="",colour="Scenario") 
         
         p1
         
@@ -564,11 +674,76 @@ server <- function(input, output){
             theme(axis.title = element_text(size=14,color="BLACK",face="bold"),
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
-                  legend.text = element_text(size=14,color="BLACK"))+
-            labs(x="Percent Channel Length",y=input$var1,title="",colour="Scenario")
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
+            labs(x="Percent of total channel length",y= paste("Percent of total",input$var1, sep = " "),title="",colour="Scenario")
 
         p1
 
+    })
+    
+    output$Plot_vs_CumLen_abs <- renderPlot({
+        
+        p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercLen))
+        if(input$var1 == "Runoff..mm."){
+            p1 <- p1 + geom_line(aes(y=cumsum(Runoff..mm.) , color= Scenario),size=1)
+        }else
+            if(input$var1 == "Lateral.Flow..mm."){
+                p1 <- p1 + geom_line(aes(y=cumsum(Lateral.Flow..mm.), color= Scenario),size=1)
+            }else
+                if(input$var1 == "Baseflow..mm."){
+                    p1 <- p1 + geom_line(aes(y=cumsum(Baseflow..mm.), color= Scenario),size=1)
+                }else
+                    if(input$var1 == "Soil.Loss..kg.ha."){
+                        p1 <- p1 + geom_line(aes(y=cumsum(Soil.Loss..kg.ha.), color= Scenario),size=1)
+                    }else
+                        if(input$var1 == "Sediment.Deposition..kg.ha."){
+                            p1 <- p1 + geom_line(aes(y=cumsum(Sediment.Deposition..kg.ha.), color= Scenario),size=1)
+                        }else
+                            if(input$var1 == "Sediment.Yield..kg.ha."){
+                                p1 <- p1 + geom_line(aes(y=cumsum(Sediment.Yield..kg.ha.), color= Scenario),size=1)
+                            }else
+                                if(input$var1 == "Solub..React..P..kg.ha.3."){
+                                    p1 <- p1 + geom_line(aes(y=cumsum(Solub..React..P..kg.ha.3.), color= Scenario),size=1)
+                                }else
+                                    if(input$var1 == "Particulate.P..kg.ha.3."){
+                                        p1 <- p1 + geom_line(aes(y=cumsum(Particulate.P..kg.ha.3.), color= Scenario),size=1)
+                                    }else
+                                        if(input$var1 == "Total.P..kg.ha.3."){
+                                            p1 <- p1 + geom_line(aes(y=cumsum(Total.P..kg.ha.3.), color= Scenario),size=1)
+                                        }else
+                                            if(input$var1 == "Particle.Class.1.Fraction"){
+                                                p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.1.Fraction), color= Scenario),size=1)
+                                            }else
+                                                if(input$var1 == "Particle.Class.2.Fraction"){
+                                                    p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.2.Fraction), color= Scenario),size=1)
+                                                }else
+                                                    if(input$var1 == "Particle.Class.3.Fraction"){
+                                                        p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.3.Fraction), color= Scenario),size=1)
+                                                    }else
+                                                        if(input$var1 == "Particle.Class.4.Fraction"){
+                                                            p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.4.Fraction), color= Scenario),size=1)
+                                                        }else
+                                                            if(input$var1 == "Particle.Class.5.Fraction"){
+                                                                p1 <- p1 + geom_line(aes(y=cumsum(Particle.Class.5.Fraction), color= Scenario),size=1)
+                                                            }else
+                                                                if(input$var1 == "Particle.Fraction.Under.0.016.mm"){
+                                                                    p1 <- p1 + geom_line(aes(y=cumsum(Particle.Fraction.Under.0.016.mm), color= Scenario),size=1)
+                                                                }else
+                                                                    if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
+                                                                        p1 <- p1 + geom_line(aes(y=cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.) , color= Scenario),size=1)
+                                                                    }
+        
+        
+        p1 <- p1 +  theme_bw()+
+            theme(axis.title = element_text(size=14,color="Black",face="bold"),
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"))+
+            labs(x="Percent of total channel length",y=input$var1,title="",colour="Scenario") 
+        
+        p1
+        
     })
     
     
