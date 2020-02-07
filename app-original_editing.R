@@ -1,138 +1,170 @@
 # @ Chinmay Deval
 # This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
+
 #
 
 library(shiny)
 library(tidyverse)
 library(shinythemes)
 library(gganimate)
+library(plotly)
 
 # Data Preparation Steps
 
-data <- read.csv("lt2020_2_hill_summary.csv")
-unique_watsheds <- as.character(unique(data$Watershed))
-unique_scenario <- as.character(unique(data$Scenario))
+hill <- read.csv("lt2020_2_hill_summary.csv")
+data_chn <- read.csv("lt2020_2_chn_summary.csv")
+data_wshed <- read.csv("lt2020_2_out_summary.csv")
 
 
-ui <- fluidPage(
+unique_watsheds <- as.character(unique(hill$Watershed))
+unique_scenario <- as.character(unique(hill$Scenario))
+
+
+ui <- navbarPage("viz-WEPP",
     
-    # # App title ----
-    # titlePanel(p("viz-WEPP", style = "color:#3474A7")),
-    titlePanel("viz-WEPP"),
     
     ## set the theme
     
-    theme = shinytheme(theme = "sandstone"),
+    theme = shinytheme(theme = "flatly"),
     
-    # Sidebar layout with input and output definitions ----
-    sidebarLayout(
-        # Sidebar panel for inputs ----
-        sidebarPanel(
-            
-            # Input: Slider for the number of bins ----
-            selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
-                        selected = unique_watsheds[1],multiple = F),
-            
-            selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
-                        selected = unique_scenario[1],multiple = T),
-            
-            # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
-            
-            selectInput(inputId="var1",label="Choose Variable",choices = c("Runoff"="Runoff..mm.",
-                                                                           "Lateral Flow"="Lateral.Flow..mm.",
-                                                                           "Baseflow "="Baseflow..mm.",
-                                                                           "Soil Loss"="Soil.Loss..kg.ha.",
-                                                                           "Sediment Deposition ."="Sediment.Deposition..kg.ha.",
-                                                                           "Sediment Yield "="Sediment.Yield..kg.ha.",
-                                                                           "Soluble Reactive Phosphorus"="Solub..React..P..kg.ha.3.",
-                                                                           "Particulate Phosphorus "="Particulate.P..kg.ha.3.",
-                                                                           "Total Phosphorus"="Total.P..kg.ha.3.",
-                                                                           "Particle Class 1 Fraction" = "Particle.Class.1.Fraction",
-                                                                           "Particle Class 2 Fraction" = "Particle.Class.2.Fraction",
-                                                                           "Particle Class 3 Fraction" = "Particle.Class.3.Fraction",
-                                                                           "Particle Class 4 Fraction" = "Particle.Class.4.Fraction",
-                                                                           "Particle Class 5 Fraction" = "Particle.Class.5.Fraction",
-                                                                           "Particle Fraction Under 0.016 mm" = "Particle.Fraction.Under.0.016.mm",
-                                                                           "Sediment Yield of Particles Under 0.016 mm" = "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."),
-                        selected = character(0), multiple = F)
-            
-            
-        ),
-        
-        # Main panel for displaying outputs ----
-        mainPanel(
-            
-            tabsetPanel(
-                tabPanel("Hillslope",
-                         fluidRow(
-                                  column(6, plotOutput("Plot_vs_CumArea")),
-                                  column(6, plotOutput("Plot_vs_CumArea_abs"))
-                         ),
-                         fluidRow(
-                                  column(6, plotOutput("Plot_vs_CumLen")),
-                                  column(6, plotOutput("Plot_vs_CumLen_abs"))
-                                  )
-                ),
-            
-            
-                tabPanel("Channel",
-                         fluidRow(
-                             column(6, plotOutput("ab")),
-                             column(6, plotOutput("bc"))
-                         ),
-                         fluidRow(
-                             column(6, plotOutput("cd")),
-                             column(6, plotOutput("cds"))
-                         )
-                ),
-            
-            
-                tabPanel("Watershed",
-                         fluidRow(
-                             column(6, plotOutput("sdfqw")),
-                             column(6, plotOutput("asd"))
-                         ),
-                         fluidRow(
-                             column(6, plotOutput("asdad")),
-                             column(6, plotOutput("asdasd"))
-                         )
-                )
-                
-                # tabPanel("WatBal",
-                #          fluidRow(
-                #              column(6, plotOutput("sdsadfqw")),
-                #              column(6, plotOutput("asdasd"))
-                #          ),
-                #          fluidRow(
-                #              column(6, plotOutput("assdadad")),
-                #              column(6, plotOutput("asdgfdasd"))
-                #          ))
-                )
-                         
-
-        )
+    tabPanel("Hillslope",
+             sidebarPanel(
+                 # Input: Slider for the number of bins ----
+                 selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
+                             selected = unique_watsheds[1],multiple = F),
+                 
+                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                             selected = unique_scenario[1],multiple = T),
+                 
+                 selectInput(inputId="var1",label="Choose Variable",choices =  as.character(unique(colnames(hill)))[8:25],
+                             selected = as.character(unique(colnames(hill)))[10],multiple = F)
+                 
+             ),
+             
+             # Main panel for displaying outputs ----
+             mainPanel(
+                 
+                 fluidRow(
+                     column(6, plotOutput("Plot_vs_CumArea")),
+                     column(6, plotOutput("Plot_vs_CumArea_abs"))
+                 ),
+                 fluidRow(
+                     column(6, plotOutput("Plot_vs_CumLen")),
+                     column(6, plotOutput("Plot_vs_CumLen_abs"))
+                 )
+             )),
+    
+    tabPanel("Channel",
+             sidebarPanel(
+                 # Input: Slider for the number of bins ----
+                 selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
+                             selected = unique_watsheds[1],multiple = F),
+                 
+                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                             selected = unique_scenario[1],multiple = T),
+                 
+                 # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
+                 
+                 selectInput(inputId="chan_var",label="Choose Variable",choices = as.character(unique(colnames(data_chn)))[10:17],
+                             selected = as.character(unique(colnames(data_chn)))[10], multiple = F)
+                 
+                 
+             ),
+             
+             # Main panel for displaying outputs ----
+             mainPanel(
+                 
+                 fluidRow(
+                     column(6, plotOutput("Plot1")),
+                     column(6, plotOutput("Plot2"))
+                 ),
+                 fluidRow(
+                     column(6, plotOutput("Plot3")),
+                     column(6, plotOutput("Plot4"))
+                 )
+             )),
+    
+    tabPanel("Watershed",
+             sidebarPanel(
+                 # Input: Slider for the number of bins ----
+                 selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
+                             selected = unique_watsheds[1],multiple = F),
+                 
+                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                             selected = unique_scenario[1],multiple = T),
+                 
+                 # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
+                 
+                 selectInput(inputId="wshed_var",label="Choose Variable",choices = as.character(unique(colnames(data_wshed)))[4:19],
+                             selected = as.character(unique(colnames(data_wshed)))[8], multiple = F)
+                 
+                 
+             ),
+             
+             # Main panel for displaying outputs ----
+             mainPanel(
+                 
+                 fluidRow(
+                     column(6, plotOutput("Plot5")),
+                     column(6, plotOutput("Plot6"))
+                 ),
+                 fluidRow(
+                     column(6, plotOutput("Plot7")),
+                     column(6, plotOutput("Plot8"))
+                 )
+             )),
+    
+    tabPanel("Spatial-Viz",
+             sidebarPanel(
+                 # Input: Slider for the number of bins ----
+                 selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
+                             selected = unique_watsheds[1],multiple = F),
+                 
+                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                             selected = unique_scenario[1],multiple = T),
+                 
+                 # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
+                 
+                 selectInput(inputId="var1",label="Choose Variable",choices = NULL,
+                             selected = character(0), multiple = F)
+                 
+                 
+             ),
+             
+             # Main panel for displaying outputs ----
+             mainPanel(
+                 
+                 fluidRow(
+                     column(6, plotOutput("Plot9")),
+                     column(6, plotOutput("Plot10"))
+                 ),
+                 fluidRow(
+                     column(6, plotOutput("Plot11")),
+                     column(6, plotOutput("Plot12"))
+                 )
+             ))
+    
+    
     )
-)
-
-
-
+                                  
+     
+           
 
 # Define server logic required to draw a histogram ----
 server <- function(input, output){
     
 
-    data_subset <- reactive({
-        filter(data, Watershed %in% input$Watershed) 
+    hill_subset <- reactive({
+        filter(hill, Watershed %in% input$Watershed) 
     })
     
-    data_arr_by_var <- reactive({
-        if(input$var1 == "Runoff..mm."){
-            data_subset() %>% group_by(Scenario) %>% arrange(desc(Runoff..mm.)) %>%
+    chn_subset <- reactive({
+        filter(data_chn, Watershed %in% input$Watershed) 
+    })
+    
+    
+    hill_arr_by_var <- reactive({
+        hill_subset() %>% group_by(Scenario) %>% arrange_at(input$var1, desc) %>%
                 mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
                        cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
                        cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
@@ -140,357 +172,142 @@ server <- function(input, output){
                        cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
                        cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
                        cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                   cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                   cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                   cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                   cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                   cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                   cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                   cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                   cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                   cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                   cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                   cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                ) %>% 
-                ungroup()}else
-                if(input$var1 == "Lateral.Flow..mm."){
-                    data_subset() %>% group_by(Scenario) %>% arrange(desc(Lateral.Flow..mm.)) %>%
-                        mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                               cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                               cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                               cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                               cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                               cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                               cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                               cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                               cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                               cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                               cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                               cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                               cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                               cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                               cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                               cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                               cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                               cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                        )%>% 
-                        ungroup()}else
-                            if(input$var1 == "Baseflow..mm."){
-                                data_subset() %>% group_by(Scenario) %>% arrange(desc(Baseflow..mm.)) %>%
-                                    mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                           cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                           cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                           cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                           cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                           cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                           cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                           cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                           cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                           cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                           cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                           cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                           cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                           cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                           cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                           cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                           cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                           cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                    )%>% 
-                                    ungroup()}else
-                                        if(input$var1 == "Soil.Loss..kg.ha."){
-                                            data_subset() %>% group_by(Scenario) %>% arrange(desc(Soil.Loss..kg.ha.)) %>%
-                                                mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                       cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                       cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                       cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                       cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                       cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                       cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                       cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                       cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                       cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                       cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                       cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                       cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                       cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                       cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                       cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                       cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                       cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                )%>% 
-                                                ungroup()}else
-                                                    if(input$var1 == "Sediment.Deposition..kg.ha."){
-                                                        data_subset() %>% group_by(Scenario) %>% arrange(desc(Sediment.Deposition..kg.ha.)) %>%
-                                                            mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                   cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                   cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                   cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                   cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                   cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                   cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                   cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                   cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                   cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                   cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                   cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                   cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                   cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                   cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                   cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                   cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                   cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                            )%>% 
-                                                            ungroup()}else
-                                                                if(input$var1 == "Sediment.Yield..kg.ha."){
-                                                                    data_subset() %>% group_by(Scenario) %>% arrange(desc(Sediment.Yield..kg.ha.)) %>%
-                                                                        mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                               cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                               cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                               cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                               cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                               cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                               cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                               cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                               cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                               cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                               cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                               cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                               cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                               cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                               cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                               cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                               cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                               cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                        )%>% 
-                                                                        ungroup()}else
-                                                                            if(input$var1 == "Solub..React..P..kg.ha.3."){
-                                                                                data_subset() %>% group_by(Scenario) %>% arrange(desc(Solub..React..P..kg.ha.3.)) %>%
-                                                                                    mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                           cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                           cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                           cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                           cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                           cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                           cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                           cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                           cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                           cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                           cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                           cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                           cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                           cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                           cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                           cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                           cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                           cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                    )%>% 
-                                                                                    ungroup()}else
-                                                                                        if(input$var1 == "Particulate.P..kg.ha.3."){
-                                                                                            data_subset() %>% group_by(Scenario) %>% arrange(desc(Particulate.P..kg.ha.3.)) %>%
-                                                                                                mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                       cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                       cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                       cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                       cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                       cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                       cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                       cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                       cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                       cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                       cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                       cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                       cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                       cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                       cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                       cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                       cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                       cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                )%>% 
-                                                                                                ungroup()}else
-                                                                                                    if(input$var1 == "Total.P..kg.ha.3."){
-                                                                                                        data_subset() %>% group_by(Scenario) %>% arrange(desc(Total.P..kg.ha.3.)) %>%
-                                                                                                            mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                   cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                   cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                   cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                   cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                   cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                   cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                   cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                   cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                   cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                   cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                   cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                   cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                   cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                   cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                   cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                   cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                   cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                            )%>% 
-                                                                                                            ungroup()}else
-                                                                                                                if(input$var1 == "Particle.Class.1.Fraction"){
-                                                                                                                    data_subset() %>% group_by(Scenario) %>% arrange(desc(Particle.Class.1.Fraction)) %>%
-                                                                                                                        mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                               cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                               cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                               cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                               cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                               cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                               cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                               cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                               cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                               cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                               cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                               cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                               cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                               cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                               cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                               cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                               cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                               cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                        )%>% 
-                                                                                                                        ungroup()}else
-                                                                                                                            if(input$var1 == "Particle.Class.2.Fraction"){
-                                                                                                                                data_subset() %>% group_by(Scenario) %>% arrange(desc(Particle.Class.2.Fraction)) %>%
-                                                                                                                                    mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                                           cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                                           cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                                           cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                                           cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                                           cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                                           cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                                           cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                                           cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                                           cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                                           cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                                           cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                                           cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                                           cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                                           cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                                           cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                                           cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                                           cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                                    )%>% 
-                                                                                                                                    ungroup()}else
-                                                                                                                                        if(input$var1 == "Particle.Class.3.Fraction"){
-                                                                                                                                            data_subset() %>% group_by(Scenario) %>% arrange(desc(Particle.Class.3.Fraction)) %>%
-                                                                                                                                                mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                                                       cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                                                       cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                                                       cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                                                       cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                                                       cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                                                       cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                                                       cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                                                       cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                                                       cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                                                       cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                                                       cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                                                       cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                                                       cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                                                       cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                                                       cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                                                       cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                                                       cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                                                )%>% 
-                                                                                                                                                ungroup()}else
-                                                                                                                                                    if(input$var1 == "Particle.Class.4.Fraction"){
-                                                                                                                                                        data_subset() %>% group_by(Scenario) %>% arrange(desc(Particle.Class.4.Fraction)) %>%
-                                                                                                                                                            mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                                                                   cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                                                                   cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                                                                   cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                                                                   cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                                                                   cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                                                                   cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                                                                   cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                                                                   cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                                                                   cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                                                                   cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                                                                   cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                                                                   cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                                                                   cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                                                                   cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                                                                   cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                                                                   cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                                                                   cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                                                            )%>% 
-                                                                                                                                                            ungroup()}else
-                                                                                                                                                                if(input$var1 == "Particle.Class.5.Fraction"){
-                                                                                                                                                                    data_subset() %>% group_by(Scenario) %>% arrange(desc(Particle.Class.5.Fraction)) %>%
-                                                                                                                                                                        mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                                                                               cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                                                                               cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                                                                               cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                                                                               cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                                                                               cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                                                                               cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                                                                               cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                                                                               cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                                                                               cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                                                                               cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                                                                               cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                                                                               cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                                                                               cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                                                                               cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                                                                               cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                                                                               cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                                                                               cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                                                                        )%>% 
-                                                                                                                                                                        ungroup()}else
-                                                                                                                                                                            if(input$var1 == "Particle.Fraction.Under.0.016.mm"){
-                                                                                                                                                                                data_subset() %>% group_by(Scenario) %>% arrange(desc(Particle.Fraction.Under.0.016.mm)) %>%
-                                                                                                                                                                                    mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                                                                                           cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                                                                                           cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                                                                                           cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                                                                                           cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                                                                                           cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                                                                                           cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                                                                                           cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                                                                                           cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                                                                                           cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                                                                                           cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                                                                                           cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                                                                                           cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                                                                                           cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                                                                                           cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                                                                                           cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                                                                                           cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                                                                                           cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                                                                                    )%>% 
-                                                                                                                                                                                    ungroup()}else
-                                                                                                                                                                                        if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
-                                                                                                                                                                                            data_subset() %>% group_by(Scenario) %>% arrange(desc(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)) %>%
-                                                                                                                                                                                                mutate(cumPercArea = cumsum(Hillslope.Area..ha.)/sum(Hillslope.Area..ha.)*100,
-                                                                                                                                                                                                       cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
-                                                                                                                                                                                                       cumRunoff.mm = cumsum(Runoff..mm.)/sum(Runoff..mm.)*100,
-                                                                                                                                                                                                       cumLateralflow.mm = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
-                                                                                                                                                                                                       cumBaseflow.mm = cumsum(Baseflow..mm.)/sum(Baseflow..mm.)*100,
-                                                                                                                                                                                                       cumSoilLoss.kg.ha = cumsum(Soil.Loss..kg.ha.)/sum(Soil.Loss..kg.ha.)*100,
-                                                                                                                                                                                                       cumSedDep.kg.ha = cumsum(Sediment.Deposition..kg.ha.)/sum(Sediment.Deposition..kg.ha.)*100,
-                                                                                                                                                                                                       cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
-                                                                                                                                                                                                       cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
-                                                                                                                                                                                                       cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
-                                                                                                                                                                                                       cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
-                                                                                                                                                                                                       cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
-                                                                                                                                                                                                       cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
-                                                                                                                                                                                                       cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
-                                                                                                                                                                                                       cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
-                                                                                                                                                                                                       cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
-                                                                                                                                                                                                       cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
-                                                                                                                                                                                                       cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
-                                                                                                                                                                                                )%>% 
-                                                                                                                                                                                                ungroup()}
+                       cumSedYield.kg.ha = cumsum(Sediment.Yield..kg.ha.)/sum(Sediment.Yield..kg.ha.)*100,
+                       cumSRP.kg.ha.3 = cumsum(Solub..React..P..kg.ha.3.)/sum(Solub..React..P..kg.ha.3.)*100,
+                       cumParticulateP.kg.ha.3 = cumsum(Particulate.P..kg.ha.3.)/sum(Particulate.P..kg.ha.3.)*100,
+                       cumTotalP.kg.ha.3 = cumsum(Total.P..kg.ha.3.)/sum(Total.P..kg.ha.3.)*100,
+                       cumParticle.Class.1.Fraction = cumsum(Particle.Class.1.Fraction)/sum(Particle.Class.1.Fraction)*100,
+                       cumParticle.Class.2.Fraction = cumsum(Particle.Class.2.Fraction)/sum(Particle.Class.2.Fraction)*100,
+                       cumParticle.Class.3.Fraction = cumsum(Particle.Class.3.Fraction)/sum(Particle.Class.3.Fraction)*100,
+                       cumParticle.Class.4.Fraction = cumsum(Particle.Class.4.Fraction)/sum(Particle.Class.4.Fraction)*100,
+                       cumParticle.Class.5.Fraction = cumsum(Particle.Class.5.Fraction)/sum(Particle.Class.5.Fraction)*100,
+                       cumParticle.Fraction.Under.0.016.mm = cumsum(Particle.Fraction.Under.0.016.mm)/sum(Particle.Fraction.Under.0.016.mm)*100,
+                       cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. = cumsum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)/sum(Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha.)*100
+                ) %>%
+                ungroup()})
+    
+    chn_arr_by_var <- reactive({
+        chn_subset() %>% group_by(Scenario) %>% arrange_at(input$chan_var, desc) %>%
+            mutate(cumPercChanArea = cumsum(Channel.Area..ha.)/sum(Channel.Area..ha.)*100,
+                   cumPercLen = cumsum(Length..m.)/sum(Length..m.)*100,
+                   cumPercContriChanArea = cumsum(Contributing.Channel.Area..ha.)/sum(Contributing.Channel.Area..ha.)*100,
+                   cumDischarge.mm = cumsum(Discharge..mm.)/sum(Discharge..mm.)*100,
+                   cumSediment.Yield..tonne. = cumsum(Sediment.Yield..tonne.)/sum(Sediment.Yield..tonne.)*100,
+                   cumChannel.Erosion..tonne. = cumsum(Channel.Erosion..tonne.)/sum(Channel.Erosion..tonne.)*100,
+                   cumUpland.Charge..mm. = cumsum(Upland.Charge..mm.)/sum(Upland.Charge..mm.)*100,
+                   cumLateral.Flow..mm. = cumsum(Lateral.Flow..mm.)/sum(Lateral.Flow..mm.)*100,
+                   cumSRP.kg.ha. = cumsum(Solub..React..P..kg.ha.)/sum(Solub..React..P..kg.ha.)*100,
+                   cumParticulateP.kg.ha. = cumsum(Particulate.P..kg.ha.)/sum(Particulate.P..kg.ha.)*100,
+                   cumTotalP.kg.ha. = cumsum(Total.P..kg.ha.)/sum(Total.P..kg.ha.)*100) %>%
+            ungroup()})
+    
+    
+    output$Plot1 <- renderPlot({
+        p1 <- chn_arr_by_var() %>% ggplot(aes(x= cumPercContriChanArea))
+        if(input$chan_var ==  "Discharge..mm."){
+            p1 <- p1 + geom_line(aes(y=cumDischarge.mm  , color= Scenario),size=1)}else
+                if(input$chan_var ==  "Sediment.Yield..tonne."){
+                    p1 <- p1 + geom_line(aes(y=cumSediment.Yield..tonne.  , color= Scenario),size=1)}else
+                        if(input$chan_var ==  "Channel.Erosion..tonne."){
+                            p1 <- p1 + geom_line(aes(y=cumChannel.Erosion..tonne.  , color= Scenario),size=1)}else
+                                if(input$chan_var ==  "Upland.Charge..mm."){
+                                    p1 <- p1 + geom_line(aes(y=cumUpland.Charge..mm.  , color= Scenario),size=1)}else
+                                        if(input$chan_var ==  "Lateral.Flow..mm."){
+                                            p1 <- p1 + geom_line(aes(y=cumLateral.Flow..mm.  , color= Scenario),size=1)}else
+                                                if(input$chan_var ==  "Solub..React..P..kg.ha."){
+                                                    p1 <- p1 + geom_line(aes(y=cumSRP.kg.ha.  , color= Scenario),size=1)}else
+                                                        if(input$chan_var ==  "Particulate.P..kg.ha."){
+                                                            p1 <- p1 + geom_line(aes(y=cumParticulateP.kg.ha.  , color= Scenario),size=1)}else
+                                                                if(input$chan_var ==  "Total.P..kg.ha."){
+                                                                    p1 <- p1 + geom_line(aes(y=cumTotalP.kg.ha.  , color= Scenario),size=1)}
+                
+        p1 <- p1 +  theme_bw()+
+            theme(axis.title = element_text(size=14,color="Black",face="bold"),
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
+            labs(x="Percent of total contributing channel area",y=paste("Percent of total ", input$chan_var, sep = " "), title="",colour="Scenario")
+        
+        
+        
+        p1
+
+        })
+    
+    output$Plot2 <- renderPlot({
+        p1 <- chn_arr_by_var() %>% ggplot(aes(x= cumPercChanArea))
+        if(input$chan_var ==  "Discharge..mm."){
+            p1 <- p1 + geom_line(aes(y=cumDischarge.mm  , color= Scenario),size=1)}else
+                if(input$chan_var ==  "Sediment.Yield..tonne."){
+                    p1 <- p1 + geom_line(aes(y=cumSediment.Yield..tonne.  , color= Scenario),size=1)}else
+                        if(input$chan_var ==  "Channel.Erosion..tonne."){
+                            p1 <- p1 + geom_line(aes(y=cumChannel.Erosion..tonne.  , color= Scenario),size=1)}else
+                                if(input$chan_var ==  "Upland.Charge..mm."){
+                                    p1 <- p1 + geom_line(aes(y=cumUpland.Charge..mm.  , color= Scenario),size=1)}else
+                                        if(input$chan_var ==  "Lateral.Flow..mm."){
+                                            p1 <- p1 + geom_line(aes(y=cumLateral.Flow..mm.  , color= Scenario),size=1)}else
+                                                if(input$chan_var ==  "Solub..React..P..kg.ha."){
+                                                    p1 <- p1 + geom_line(aes(y=cumSRP.kg.ha.  , color= Scenario),size=1)}else
+                                                        if(input$chan_var ==  "Particulate.P..kg.ha."){
+                                                            p1 <- p1 + geom_line(aes(y=cumParticulateP.kg.ha.  , color= Scenario),size=1)}else
+                                                                if(input$chan_var ==  "Total.P..kg.ha."){
+                                                                    p1 <- p1 + geom_line(aes(y=cumTotalP.kg.ha.  , color= Scenario),size=1)}
+        
+        p1 <- p1 +  theme_bw()+
+            theme(axis.title = element_text(size=14,color="Black",face="bold"),
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
+            labs(x="Percent of total channel area",y=paste("Percent of total ", input$chan_var, sep = " "), title="",colour="Scenario")
+        
+        
+        
+        p1
+        
     })
     
     
-    output$Plot_vs_CumArea <- renderPlot({
+    output$Plot3 <- renderPlot({
+        p1 <- chn_arr_by_var() %>% ggplot(aes(x= cumPercLen))
+        if(input$chan_var ==  "Discharge..mm."){
+            p1 <- p1 + geom_line(aes(y=cumDischarge.mm  , color= Scenario),size=1)}else
+                if(input$chan_var ==  "Sediment.Yield..tonne."){
+                    p1 <- p1 + geom_line(aes(y=cumSediment.Yield..tonne.  , color= Scenario),size=1)}else
+                        if(input$chan_var ==  "Channel.Erosion..tonne."){
+                            p1 <- p1 + geom_line(aes(y=cumChannel.Erosion..tonne.  , color= Scenario),size=1)}else
+                                if(input$chan_var ==  "Upland.Charge..mm."){
+                                    p1 <- p1 + geom_line(aes(y=cumUpland.Charge..mm.  , color= Scenario),size=1)}else
+                                        if(input$chan_var ==  "Lateral.Flow..mm."){
+                                            p1 <- p1 + geom_line(aes(y=cumLateral.Flow..mm.  , color= Scenario),size=1)}else
+                                                if(input$chan_var ==  "Solub..React..P..kg.ha."){
+                                                    p1 <- p1 + geom_line(aes(y=cumSRP.kg.ha.  , color= Scenario),size=1)}else
+                                                        if(input$chan_var ==  "Particulate.P..kg.ha."){
+                                                            p1 <- p1 + geom_line(aes(y=cumParticulateP.kg.ha.  , color= Scenario),size=1)}else
+                                                                if(input$chan_var ==  "Total.P..kg.ha."){
+                                                                    p1 <- p1 + geom_line(aes(y=cumTotalP.kg.ha.  , color= Scenario),size=1)}
         
-        p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
+        p1 <- p1 +  theme_bw()+
+            theme(axis.title = element_text(size=14,color="Black",face="bold"),
+                  axis.text = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
+            labs(x="Percent of total length",y=paste("Percent of total ", input$chan_var, sep = " "), title="",colour="Scenario")
+        
+        
+        
+        p1
+        
+    })
+    
+
+    output$Plot_vs_CumArea <- renderPlot({
+
+        p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
         if(input$var1 == "Runoff..mm."){
-            p1 <- p1 + geom_line(aes(y=cumRunoff.mm , color= Scenario),size=1)
+            p1 <- p1 + geom_line(aes(y=cumRunoff.mm  , color= Scenario),size=1)
         }else
             if(input$var1 == "Lateral.Flow..mm."){
                 p1 <- p1 + geom_line(aes(y=cumLateralflow.mm, color= Scenario),size=1)
@@ -537,24 +354,26 @@ server <- function(input, output){
                                                                     if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
                                                                         p1 <- p1 + geom_line(aes(y=cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha. , color= Scenario),size=1)
                                                                     }
-        
-        
+
+
         p1 <- p1 +  theme_bw()+
             theme(axis.title = element_text(size=14,color="Black",face="bold"),
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"),
-                  legend.position = "none")+
-            labs(x="Percent Area",y=paste("Percent of total", input$var1, sep = " "), title="",colour="Scenario") 
-        
+                  legend.position = "bottom")+
+            labs(x="Percent Area",y=paste("Percent of total", input$var1, sep = " "), title="",colour="Scenario")
+
+
+
         p1
-        
+
     })
-    
-    
+
+
     output$Plot_vs_CumArea_abs <- renderPlot({
         
-        p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
+        p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
         if(input$var1 == "Runoff..mm."){
             p1 <- p1 + geom_line(aes(y=cumsum(Runoff..mm.) , color= Scenario),size=1)
         }else
@@ -619,7 +438,7 @@ server <- function(input, output){
     
     output$Plot_vs_CumLen <- renderPlot({
 
-        p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercLen ))
+        p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercLen ))
         if(input$var1 == "Runoff..mm."){
             p1 <- p1 + geom_line(aes(y=cumRunoff.mm, color= Scenario),size=1)
         }else
@@ -684,7 +503,7 @@ server <- function(input, output){
     
     output$Plot_vs_CumLen_abs <- renderPlot({
         
-        p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercLen))
+        p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercLen))
         if(input$var1 == "Runoff..mm."){
             p1 <- p1 + geom_line(aes(y=cumsum(Runoff..mm.) , color= Scenario),size=1)
         }else
@@ -747,18 +566,18 @@ server <- function(input, output){
     })
     
     
-    # output$distPlot2 <- renderImage({
-    #     
+    # output$Plot2 <- renderImage({
+    # 
     #     outfile <- tempfile(fileext='.gif')
-    #     
-    #     p1 <- data_arr_by_var()  %>% ggplot(aes(x=cumPercLen )) +  theme_bw()+
+    # 
+    #     p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercLen )) +  theme_bw()+
     #         theme(axis.title = element_text(size=14,color="BLACK",face="bold"),
     #               axis.text = element_text(size=14,color="BLACK",face="bold"),
     #               legend.title = element_text(size=14,color="BLACK",face="bold"),
     #               legend.text = element_text(size=14,color="BLACK"))+
     #         labs(x="Percent Channel Length",y=input$var1,title="",colour="Scenario")
     #     if(input$var1 == "Runoff..mm."){
-    #         p1 <- p1 + geom_line(aes(y=cumRunoff.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)  
+    #         p1 <- p1 + geom_line(aes(y=cumRunoff.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
     #     }else
     #         if(input$var1 == "Lateral.Flow..mm."){
     #             p1 <- p1 + geom_line(aes(y=cumLateralflow.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
