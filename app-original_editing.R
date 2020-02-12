@@ -6,8 +6,8 @@
 library(shiny)
 library(tidyverse)
 library(shinythemes)
-library(gganimate)
-library(plotly)
+# library(gganimate)
+# library(plotly)
 
 # Data Preparation Steps
 
