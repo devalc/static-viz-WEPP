@@ -106,8 +106,8 @@ ui <- navbarPage("viz-WEPP",
              mainPanel(
                  
                  fluidPage(
-                 plotlyOutput("Plot5" ,height = "800px", width ="1200px")
-                 # plotOutput("Plot5",height = "800px", width ="800px" )
+                 # plotlyOutput("Plot5" ,height = "800px", width ="1200px")
+                 plotOutput("Plot5",height = "800px", width ="800px" )
                      
                  ))
              ),
@@ -207,7 +207,7 @@ server <- function(input, output){
 
 #################   CHANNEL PLOTS #################     
 
-    output$Plot5 <- renderPlotly({
+    output$Plot5 <- renderPlot({
         
         
         wshed_subet <- dplyr::filter(data_wshed, Watershed %in% input$Watershed)
