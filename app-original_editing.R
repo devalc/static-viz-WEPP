@@ -45,12 +45,12 @@ ui <- navbarPage("viz-WEPP",
              mainPanel(
                  
                  fluidRow(
-                     column(6, plotOutput("Plot_vs_CumArea")),
-                     column(6, plotOutput("Plot_vs_CumArea_abs"))
+                     column(6, plotlyOutput("Plot_vs_CumArea")),
+                     column(6, plotlyOutput("Plot_vs_CumArea_abs"))
                  ),
                  fluidRow(
-                     column(6, plotOutput("Plot_vs_CumLen")),
-                     column(6, plotOutput("Plot_vs_CumLen_abs"))
+                     column(6, plotlyOutput("Plot_vs_CumLen")),
+                     column(6, plotlyOutput("Plot_vs_CumLen_abs"))
                  )
              )),
     
@@ -75,12 +75,12 @@ ui <- navbarPage("viz-WEPP",
              mainPanel(
                  
                  fluidRow(
-                     column(6, plotOutput("Plot1")),
-                     column(6, plotOutput("Plot2"))
+                     column(6,  plotlyOutput("Plot1")),
+                     column(6, plotlyOutput("Plot2"))
                  ),
                  fluidRow(
-                     column(6, plotOutput("Plot3")),
-                     column(6, plotOutput("Plot4"))
+                     column(6, plotlyOutput("Plot3")),
+                     column(6, plotlyOutput("Plot4"))
                  )
              )),
     
@@ -255,7 +255,7 @@ server <- function(input, output){
         
         
 #################   CHANNEL PLOTS #################      
-    output$Plot1 <- renderPlot({
+    output$Plot1 <- renderPlotly({
         p1 <- chn_arr_by_var() %>% ggplot(aes(x= cumPercContriChanArea))
         if(input$chan_var ==  "Discharge..mm."){
             p1 <- p1 + geom_line(aes(y=cumDischarge.mm  , color= Scenario),size=1)}else
@@ -288,7 +288,7 @@ server <- function(input, output){
 
         })
     
-    output$Plot2 <- renderPlot({
+    output$Plot2 <- renderPlotly({
         p1 <- chn_arr_by_var() %>% ggplot(aes(x= cumPercChanArea))
         if(input$chan_var ==  "Discharge..mm."){
             p1 <- p1 + geom_line(aes(y=cumDischarge.mm  , color= Scenario),size=1)}else
@@ -322,7 +322,7 @@ server <- function(input, output){
     })
     
     
-    output$Plot3 <- renderPlot({
+    output$Plot3 <- renderPlotly({
         p1 <- chn_arr_by_var() %>% ggplot(aes(x= cumPercLen))
         if(input$chan_var ==  "Discharge..mm."){
             p1 <- p1 + geom_line(aes(y=cumDischarge.mm  , color= Scenario),size=1)}else
@@ -356,7 +356,7 @@ server <- function(input, output){
     })
     
 #################   HILLSLOPE PLOTS #################       
-    output$Plot_vs_CumArea <- renderPlot({
+    output$Plot_vs_CumArea <- renderPlotly({
 
         p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
         if(input$var1 == "Runoff..mm."){
@@ -414,7 +414,7 @@ server <- function(input, output){
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"),
-                  legend.position = "bottom")+
+                  legend.position = "none")+
             labs(x="Percent Area",y=paste("Percent of total", input$var1, sep = " "), title="",colour="Scenario")
 
 
@@ -424,7 +424,7 @@ server <- function(input, output){
     })
 
    
-    output$Plot_vs_CumArea_abs <- renderPlot({
+    output$Plot_vs_CumArea_abs <- renderPlotly({
         
         p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercArea))
         if(input$var1 == "Runoff..mm."){
@@ -481,7 +481,8 @@ server <- function(input, output){
             theme(axis.title = element_text(size=14,color="Black",face="bold"),
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
-                  legend.text = element_text(size=14,color="BLACK"))+
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
             labs(x="Percent of total hillslope area",y=input$var1,title="",colour="Scenario") 
         
         p1
@@ -489,7 +490,7 @@ server <- function(input, output){
     })
     
     
-    output$Plot_vs_CumLen <- renderPlot({
+    output$Plot_vs_CumLen <- renderPlotly({
 
         p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercLen ))
         if(input$var1 == "Runoff..mm."){
@@ -554,7 +555,7 @@ server <- function(input, output){
 
     })
     
-    output$Plot_vs_CumLen_abs <- renderPlot({
+    output$Plot_vs_CumLen_abs <- renderPlotly({
         
         p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercLen))
         if(input$var1 == "Runoff..mm."){
@@ -611,7 +612,8 @@ server <- function(input, output){
             theme(axis.title = element_text(size=14,color="Black",face="bold"),
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
-                  legend.text = element_text(size=14,color="BLACK"))+
+                  legend.text = element_text(size=14,color="BLACK"),
+                  legend.position = "none")+
             labs(x="Percent of total channel length",y=input$var1,title="",colour="Scenario") 
         
         p1
