@@ -90,13 +90,13 @@ ui <- navbarPage("viz-WEPP",
                  selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
                              selected = unique_watsheds[1],multiple = F),
                  
-                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
-                             selected = unique_scenario[1],multiple = T),
+                 # selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                 #             selected = unique_scenario[1],multiple = T),
                  
                  # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
                  
-                 selectInput(inputId="wshed_var",label="Choose Variable",choices = as.character(unique(colnames(data_wshed)))[4:19],
-                             selected = as.character(unique(colnames(data_wshed)))[8], multiple = F)
+                 # selectInput(inputId="wshed_var",label="Choose Variable",choices = as.character(unique(colnames(data_wshed)))[4:19],
+                 #             selected = as.character(unique(colnames(data_wshed)))[8], multiple = F)
                  
                  
              ),
@@ -160,6 +160,11 @@ server <- function(input, output){
     
     chn_subset <- reactive({
         filter(data_chn, Watershed %in% input$Watershed) 
+    })
+    
+    
+    wshed_subset <- reactive({
+        filter(data_wshed, Watershed %in% input$Watershed) 
     })
     
     
@@ -564,6 +569,9 @@ server <- function(input, output){
         p1
         
     })
+    
+    
+    ##### Watershed summary plots
     
     
     # output$Plot2 <- renderImage({
