@@ -249,7 +249,7 @@ server <- function(input, output){
                         axis.title.x = element_blank(),
                         axis.title.y = element_text(colour = "Black", size = 12, face = 'bold')
                         ) +coord_flip() + labs(x="Percent of total across all scenarios") + scale_fill_brewer(
-                            palette = "PuOr", direction = -1)
+                            palette = "RdYlGn")
                     
                 
                 }
