@@ -6,7 +6,6 @@
 library(shiny)
 library(tidyverse)
 library(shinythemes)
-# library(gganimate)
 library(plotly)
 
 # Data Preparation Steps
@@ -29,12 +28,12 @@ ui <- navbarPage("viz-WEPP",
     
     tabPanel("Hillslope",
              sidebarPanel(
-                 # Input: Slider for the number of bins ----
+                 # Input: autopopulating input dropdowns ----
                  selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
                              selected = unique_watsheds[1],multiple = F),
                  
-                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
-                             selected = unique_scenario[1],multiple = T),
+                 # selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                 #             selected = unique_scenario[1],multiple = T),
                  
                  selectInput(inputId="var1",label="Choose Variable",choices =  as.character(unique(colnames(hill)))[8:25],
                              selected = as.character(unique(colnames(hill)))[10],multiple = F)
@@ -56,12 +55,12 @@ ui <- navbarPage("viz-WEPP",
     
     tabPanel("Channel",
              sidebarPanel(
-                 # Input: Slider for the number of bins ----
+                 # Input: autopopulating input dropdowns ---- ----
                  selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
                              selected = unique_watsheds[1],multiple = F),
                  
-                 selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
-                             selected = unique_scenario[1],multiple = T),
+                 # selectInput(inputId="Scenario",label="Choose Scenario",choices = unique_scenario,
+                 #             selected = unique_scenario[1],multiple = T),
                  
                  # radioButtons(inputId = "border1",label = "Select Border",choices = c("Black"="#000000","White"="#ffffff")),
                  
@@ -84,9 +83,9 @@ ui <- navbarPage("viz-WEPP",
                  )
              )),
     
-    tabPanel("Watershed",
+    tabPanel("Watersheds",
              sidebarPanel(
-                 # Input: Slider for the number of bins ----
+                 # Input: autopopulating input dropdowns --------
                  selectInput(inputId="Watershed",label="Choose Watershed",choices = unique_watsheds,
                              selected = unique_watsheds[1],multiple = F),
                  
@@ -94,7 +93,7 @@ ui <- navbarPage("viz-WEPP",
                  #             selected = unique_scenario[1],multiple = T),
                  
                  radioButtons(inputId = "ScenVvar",label = "Select heatmap or specific variable",
-                              choices = c("Heatmap"="Heatmap","Pie Chart"="Pie Chart"), selected = "Heatmap")
+                              choices = c("Heatmap"="Heatmap","Bar Chart"="Bar Chart"), selected = "Heatmap")
                  
                  # selectInput(inputId="wshed_var",label="Choose Variable",choices = as.character(unique(colnames(data_wshed)))[4:19],
                  #             selected = as.character(unique(colnames(data_wshed)))[8], multiple = F)
@@ -160,9 +159,9 @@ server <- function(input, output){
         dplyr::filter(data_chn, Watershed %in% input$Watershed) 
     })
     
-    # wshed_subet <- reactive({
-    #     dplyr::filter(data_wshed, Watershed %in% input$Watershed) 
-    # })
+    wshed_subet <- reactive({
+        dplyr::filter(data_wshed, Watershed %in% input$Watershed)
+    })
     
 #################   HILLSLOPE DF #################      
     hill_arr_by_var <- reactive({
@@ -210,25 +209,26 @@ server <- function(input, output){
     output$Plot5 <- renderPlot({
         
         
-        wshed_subet <- dplyr::filter(data_wshed, Watershed %in% input$Watershed)
+        wshed_subet <- wshed_subet()
         
         if (input$ScenVvar == "Heatmap") {
         d <-  wshed_subet[,c(2,7:20)] %>% dplyr::mutate_if(is.numeric, scale)
         
         d.m <- reshape2::melt(d)
         
+        # a <- plotly::plot_ly(x = ~Scenario, y= ~variable,  z= d.m, type = "heatmap")
         
-        a<-ggplot(d.m, aes(Scenario, variable,  fill= value)) + 
+        a<-ggplot(d.m, aes(Scenario, variable,  fill= value)) +
             geom_tile(inherit.aes = TRUE)  +
-            scale_fill_distiller(palette = "Spectral") + 
+            scale_fill_distiller(palette = "BrBG", direction = -1) +
             theme(
                 axis.text.x = element_text(angle = 90,colour = "Black", size = 12, face = "bold"),
                 axis.text.y = element_text(colour = "Black", size = 12, face = 'bold'),
                 axis.title = element_blank()
-                
+
             )
         a}else
-            if (input$ScenVvar == "Pie Chart") {
+            if (input$ScenVvar == "Bar Chart") {
                 
                 d <-  wshed_subet[,c(2,7:20)] 
                 
@@ -241,12 +241,15 @@ server <- function(input, output){
                     ungroup() 
                 
                 ggplot(d.m) +
-                    facet_wrap(~variable) +
-                    geom_bar(aes(y = share, x = "", fill = Scenario), stat = "identity") +
+                    
+                    geom_bar(aes(y = share, x = variable, fill = Scenario), stat = "identity", position = "dodge") +
                     theme(
-                        axis.title = element_blank() 
-                    ) +
-                    coord_polar("y", start = 0) 
+                        axis.text.x = element_text(angle = 45, vjust = ,colour = "Black", size = 12, face = "bold"),
+                        axis.text.y = element_text(colour = "Black", size = 12, face = 'bold'),
+                        axis.title.x = element_blank(),
+                        axis.title.y = element_text(colour = "Black", size = 12, face = 'bold')
+                        ) +coord_flip() + labs(x="Percent of total across all scenarios") + scale_fill_brewer(
+                            palette = "PuOr", direction = -1)
                     
                 
                 }
@@ -280,6 +283,7 @@ server <- function(input, output){
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"),
                   legend.position = "none")+
+            scale_color_brewer(palette="RdYlGn") +
             labs(x="Percent of total contributing channel area",y=paste("Percent of total ", input$chan_var, sep = " "), title="",colour="Scenario")
         
         
@@ -313,6 +317,7 @@ server <- function(input, output){
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"),
                   legend.position = "none")+
+            scale_color_brewer(palette="RdYlGn") +
             labs(x="Percent of total channel area",y=paste("Percent of total ", input$chan_var, sep = " "), title="",colour="Scenario")
         
         
@@ -347,6 +352,7 @@ server <- function(input, output){
                   legend.title = element_text(size=14,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"),
                   legend.position = "none")+
+            scale_color_brewer(palette="RdYlGn") +
             labs(x="Percent of total length",y=paste("Percent of total ", input$chan_var, sep = " "), title="",colour="Scenario")
         
         
@@ -410,12 +416,13 @@ server <- function(input, output){
 
 
         p1 <- p1 +  theme_bw()+
-            theme(axis.title = element_text(size=14,color="Black",face="bold"),
-                  axis.text = element_text(size=14,color="BLACK",face="bold"),
-                  legend.title = element_text(size=14,color="BLACK",face="bold"),
-                  legend.text = element_text(size=14,color="BLACK"),
+            theme(axis.title = element_text(size=12,color="Black",face="bold"),
+                  axis.text = element_text(size=12,color="BLACK",face="bold"),
+                  legend.title = element_text(size=12,color="BLACK",face="bold"),
+                  legend.text = element_text(size=12,color="BLACK"),
                   legend.position = "none")+
-            labs(x="Percent Area",y=paste("Percent of total", input$var1, sep = " "), title="",colour="Scenario")
+            scale_color_brewer(palette="RdYlGn") +
+            labs(x="Percent of total hillslope area",y=paste("Percent of total", input$var1, sep = " "), title="",colour="Scenario")
 
 
 
@@ -480,9 +487,10 @@ server <- function(input, output){
         p1 <- p1 +  theme_bw()+
             theme(axis.title = element_text(size=14,color="Black",face="bold"),
                   axis.text = element_text(size=14,color="BLACK",face="bold"),
-                  legend.title = element_text(size=14,color="BLACK",face="bold"),
+                  legend.title = element_text(size=12,color="BLACK",face="bold"),
                   legend.text = element_text(size=14,color="BLACK"),
                   legend.position = "none")+
+            scale_color_brewer(palette="RdYlGn") +
             labs(x="Percent of total hillslope area",y=input$var1,title="",colour="Scenario") 
         
         p1
@@ -544,11 +552,12 @@ server <- function(input, output){
 
 
         p1 <- p1 +  theme_bw()+
-            theme(axis.title = element_text(size=14,color="BLACK",face="bold"),
-                  axis.text = element_text(size=14,color="BLACK",face="bold"),
-                  legend.title = element_text(size=14,color="BLACK",face="bold"),
-                  legend.text = element_text(size=14,color="BLACK"),
+            theme(axis.title = element_text(size=12,color="BLACK",face="bold"),
+                  axis.text = element_text(size=12,color="BLACK",face="bold"),
+                  legend.title = element_text(size=12,color="BLACK",face="bold"),
+                  legend.text = element_text(size=12,color="BLACK"),
                   legend.position = "none")+
+            scale_color_brewer(palette="RdYlGn") +
             labs(x="Percent of total channel length",y= paste("Percent of total",input$var1, sep = " "),title="",colour="Scenario")
 
         p1
@@ -609,87 +618,17 @@ server <- function(input, output){
         
         
         p1 <- p1 +  theme_bw()+
-            theme(axis.title = element_text(size=14,color="Black",face="bold"),
-                  axis.text = element_text(size=14,color="BLACK",face="bold"),
-                  legend.title = element_text(size=14,color="BLACK",face="bold"),
-                  legend.text = element_text(size=14,color="BLACK"),
+            theme(axis.title = element_text(size=12,color="Black",face="bold"),
+                  axis.text = element_text(size=12,color="BLACK",face="bold"),
+                  legend.title = element_text(size=12,color="BLACK",face="bold"),
+                  legend.text = element_text(size=12,color="BLACK"),
                   legend.position = "none")+
+            scale_color_brewer(palette="RdYlGn") +
             labs(x="Percent of total channel length",y=input$var1,title="",colour="Scenario") 
         
         p1
         
     })
-    
-    
-    # output$Plot2 <- renderImage({
-    # 
-    #     outfile <- tempfile(fileext='.gif')
-    # 
-    #     p1 <- hill_arr_by_var()  %>% ggplot(aes(x=cumPercLen )) +  theme_bw()+
-    #         theme(axis.title = element_text(size=14,color="BLACK",face="bold"),
-    #               axis.text = element_text(size=14,color="BLACK",face="bold"),
-    #               legend.title = element_text(size=14,color="BLACK",face="bold"),
-    #               legend.text = element_text(size=14,color="BLACK"))+
-    #         labs(x="Percent Channel Length",y=input$var1,title="",colour="Scenario")
-    #     if(input$var1 == "Runoff..mm."){
-    #         p1 <- p1 + geom_line(aes(y=cumRunoff.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #     }else
-    #         if(input$var1 == "Lateral.Flow..mm."){
-    #             p1 <- p1 + geom_line(aes(y=cumLateralflow.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #         }else
-    #             if(input$var1 == "Baseflow..mm."){
-    #                 p1 <- p1 + geom_line(aes(y=cumBaseflow.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #             }else
-    #                 if(input$var1 == "Soil.Loss..kg.ha."){
-    #                     p1 <- p1 + geom_line(aes(y=cumSoilLoss.kg.ha, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                 }else
-    #                     if(input$var1 == "Sediment.Deposition..kg.ha."){
-    #                         p1 <- p1 + geom_line(aes(y=cumSedDep.kg.ha, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                     }else
-    #                         if(input$var1 == "Sediment.Yield..kg.ha."){
-    #                             p1 <- p1 + geom_line(aes(y=cumSedYield.kg.ha, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                         }else
-    #                             if(input$var1 == "Solub..React..P..kg.ha.3."){
-    #                                 p1 <- p1 + geom_line(aes(y=cumSRP.kg.ha.3, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                             }else
-    #                                 if(input$var1 == "Particulate.P..kg.ha.3."){
-    #                                     p1 <- p1 + geom_line(aes(y=cumParticulateP.kg.ha.3, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                 }else
-    #                                     if(input$var1 == "Total.P..kg.ha.3."){
-    #                                         p1 <- p1 + geom_line(aes(y=cumTotalP.kg.ha.3, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                     }else
-    #                                         if(input$var1 == "Particle.Class.1.Fraction"){
-    #                                             p1 <- p1 + geom_line(aes(y=cumParticle.Class.1.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                         }else
-    #                                             if(input$var1 == "Particle.Class.2.Fraction"){
-    #                                                 p1 <- p1 + geom_line(aes(y=cumParticle.Class.2.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                             }else
-    #                                                 if(input$var1 == "Particle.Class.3.Fraction"){
-    #                                                     p1 <- p1 + geom_line(aes(y=cumParticle.Class.3.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                                 }else
-    #                                                     if(input$var1 == "Particle.Class.4.Fraction"){
-    #                                                         p1 <- p1 + geom_line(aes(y=cumParticle.Class.4.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                                     }else
-    #                                                         if(input$var1 == "Particle.Class.5.Fraction"){
-    #                                                             p1 <- p1 + geom_line(aes(y=cumParticle.Class.5.Fraction, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                                         }else
-    #                                                             if(input$var1 == "Particle.Fraction.Under.0.016.mm"){
-    #                                                                 p1 <- p1 + geom_line(aes(y=cumParticle.Fraction.Under.0.016.mm, color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                                             }else
-    #                                                                 if(input$var1 == "Sediment.Yield.of.Particles.Under.0.016.mm..kg.ha."){
-    #                                                                     p1 <- p1 + geom_line(aes(y=cumSediment.Yield.of.Particles.Under.0.016.mm..kg.ha., color= Scenario),size=1)+ transition_reveal(cumPercLen)
-    #                                                                 }
-    #     anim_save("outfile.gif", animate(p1)) # New
-    # 
-    #     # Return a list containing the filename
-    #     list(src = "outfile.gif",
-    #          contentType = 'image/gif',
-    #          width = 1000,
-    #          height = 1000
-    #          # alt = "This is alternate text"
-    #     )}, deleteFile = TRUE)
-    
-    
     
     
 }
