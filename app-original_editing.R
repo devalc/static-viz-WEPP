@@ -1,5 +1,6 @@
 # @ Chinmay Deval
-# This is a Shiny web application. You can run the application by clicking
+# This is a Shiny web application. 
+#You can run the application by clicking
 
 #
 
@@ -156,6 +157,7 @@ server <- function(input, output){
         dplyr::filter(hill, Watershed %in% input$Watershed) 
     })
     
+   
     chn_subset <- reactive({
         dplyr::filter(data_chn, Watershed %in% input$Watershed) 
     })
